@@ -100,6 +100,7 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 		const premium = db.premium
 		const set = db.set[botNumber]
 		const apikey = 'APIKEY';
+		const apiKey = 'APIKEY';
 		
 		// Database Game
 		let suit = db.game.suit
