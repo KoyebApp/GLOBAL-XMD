@@ -2436,7 +2436,7 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			case 'google': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
-        const apikey = 'APIKEY'; // replace with your API key
+	    const apikey = 'APIKEY'
         const url = `https://gtech-api-xtp1.onrender.com/api/google/search?query=${encodeURIComponent(text)}&apikey=${apikey}`;
 
         let response = await axios.get(url);
@@ -2446,17 +2446,16 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
             return m.reply('No search results found!');
         }
 
-        // Format the results into a readable message
-        let message = data.results.map((item, i) => {
-            let title = item.title || 'No title';
-            return `Result ${i + 1}:\nTitle: ${title}\nLink: ${item.link}\nDescription: ${item.description}\n`;
-        }).join('\n');
+        // Get only the first result
+        let first = data.results[0];
+
+        let title = first.title || 'No title';
+        let message = `Title: ${title}\nLink: ${first.link}\nDescription: ${first.description}`;
 
         await m.reply(message);
     } catch (e) {
         console.error('Google search error:', e);
         try {
-            // fallback to your yanzGpt fallback method
             let fallback = await yanzGpt([
                 { role: 'system', content: 'carikan informasi tentang hal tersebut secara mendetail, dengan sumbernya juga!' },
                 { role: 'user', content: text }
