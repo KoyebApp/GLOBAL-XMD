@@ -2380,8 +2380,8 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 				}
 			}
 			break
-				.addcase case 'define': {
-  if (!text) return m.reply(`Example: ${prefix + command} Palestine`);
+				case 'define': {
+  if (!text) return m.reply(`Example: ${prefix + command} word`);
   try {
     const url = `https://gtech-api-xtp1.onrender.com/api/tools/define?apikey=${apikey}&word=${encodeURIComponent(text)}`;
 
