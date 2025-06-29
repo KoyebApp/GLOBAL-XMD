@@ -2451,11 +2451,14 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			case 'gimage': case 'bingimg': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
-        let images = await Qasim.googleImage(text);  // returns array of URLs
-        if (!images.length) return m.reply('No images found!');
-        let imageUrl = images[0];  // pick first image URL
+        const url = `https://gtech-api-xtp1.onrender.com/api/download/gimage?query=${encodeURIComponent(text)}&apikey=APIKEY`;
 
-        // Send image in bot reply (example for WhatsApp or similar bot)
+        let response = await axios.get(url);
+        let images = response.data.result; 
+        if (!images || images.length === 0) return m.reply('No images found!');
+
+        let imageUrl = images[0];  
+
         await m.reply({ image: { url: imageUrl }, caption: 'Search Results: ' + text });
         setLimit(m, db);
     } catch (e) {
@@ -2463,6 +2466,7 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
     }
 }
 break;
+				
 				
 			case 'play': case 'ytplay': case 'yts': case 'ytsearch': case 'youtubesearch': {
 				if (!text) return m.reply(`Example: ${prefix + command} dj komang`)
