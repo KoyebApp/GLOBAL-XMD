@@ -2380,6 +2380,33 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 				}
 			}
 			break
+				.addcase case 'define': {
+  if (!text) return m.reply(`Example: ${prefix + command} Palestine`);
+  try {
+    const url = `https://gtech-api-xtp1.onrender.com/api/tools/define?apikey=${apikey}&word=${encodeURIComponent(text)}`;
+
+    let res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch definition');
+    let data = await res.json();
+
+    if (!data.status || !data.data || !data.data.definition) {
+      return m.reply('No definition found for that word.');
+    }
+
+    let word = data.data.word || text;
+    let definition = data.data.definition.trim();
+    let example = data.data.example ? `\n\nExample: ${data.data.example.trim()}` : '';
+
+    let message = `*Definition of ${word}*\n\n${definition}${example}`;
+
+    await m.reply(message);
+    setLimit(m, db);
+  } catch (e) {
+    console.error('Error in define command:', e);
+    m.reply('Failed to fetch the definition.');
+  }
+}
+break;
 			
 			// Ai Menu
 			case 'ai': {
