@@ -2503,27 +2503,40 @@ break;
         let response = await fetch(url);
         let data = await response.json();
 
-        if (!data.status || !data.News || !data.thumbnailUrl) {
+        if (!data.status || !data.message || !data.thumbnailUrl) {
             return m.reply('No news found!');
         }
 
-        // Prepare the text to quote on the image
-        let newsText = data.News.trim();
+        // Extract news text from the message string
+        // The message contains something like: "\n creator: 'Qasim Ali🦋',\n News: The most anticipated family drama..."
+        // We want to extract the text after "News:"
+        let message = data.message;
 
-        // Send the image with the news text as caption (quoted)
+        // Use regex to extract text after "News:" up to the end or next label
+        let newsMatch = message.match(/News:\s*([\s\S]*)/);
+        if (!newsMatch || !newsMatch[1]) {
+            return m.reply('No news found!');
+        }
+
+        let newsText = newsMatch[1].trim();
+
+        // Remove any trailing HTML or CSS embedded content if present (optional)
+        // For example, remove anything starting with ".embed-container" or similar
+        newsText = newsText.replace(/\.embed-container[\s\S]*/g, '').trim();
+
+        // Send the image with the news text quoted as caption
         await m.reply({
             image: { url: data.thumbnailUrl },
             caption: `"${newsText}"`
         });
 
-        setLimit(m, db);  // if you want to limit usage like your gimage command
+        setLimit(m, db);
     } catch (e) {
         console.error('Error in technews command:', e);
         m.reply('News Not Found!');
     }
 }
 break;
-				
 				
 				
 			case 'gimage': case 'bingimg': {
