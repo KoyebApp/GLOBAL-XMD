@@ -2496,6 +2496,33 @@ break;
     }
 }
 break;
+				case 'technews': {
+    try {
+        let url = `https://gtech-api-xtp1.onrender.com/api/tech/news?apikey=${apiKey}`;
+        let response = await fetch(url);
+        let data = await response.json();
+
+        if (!data.status || !data.News || !data.thumbnailUrl) {
+            return m.reply('No news found!');
+        }
+
+        // Prepare the text to quote on the image
+        let newsText = data.News.trim();
+
+        // Send the image with the news text as caption (quoted)
+        await m.reply({
+            image: { url: data.thumbnailUrl },
+            caption: `"${newsText}"`
+        });
+
+        setLimit(m, db);  // if you want to limit usage like your gimage command
+    } catch (e) {
+        console.error('Error in technews command:', e);
+        m.reply('News Not Found!');
+    }
+}
+break;
+				
 				
 				
 			case 'gimage': case 'bingimg': {
