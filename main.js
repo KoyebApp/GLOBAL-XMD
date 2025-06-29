@@ -2473,25 +2473,35 @@ break;
     if (!text) return m.reply(`Example: ${prefix + command} Albert Einstein`);
     try {
         let response = await Qasim.wikisearch(text);
-	    console.log('API Response:', response);
 
-        // Assuming response is an array of search results with titles and snippets
+        // response is an array with one object containing 'wiki', 'thumb', and 'judul'
         if (!response || !Array.isArray(response) || response.length === 0) {
             return m.reply('No Wikipedia results found!');
         }
 
-        // Take the first search result
-        let first = response[0];
+        let data = response[0];
 
-        // Prepare message with title, snippet, and link to the Wikipedia page
-        // Usually, snippet may contain HTML tags, so strip them if needed
-        let snippet = first.snippet ? first.snippet.replace(/<\/?[^>]+(>|$)/g, "") : '';
-        let title = first.title || text;
+        // Clean the 'wiki' text: remove excessive newlines and HTML tags if any
+        let summary = data.wiki
+            .replace(/\n+/g, '\n')               // normalize newlines
+            .replace(/<[^>]*>/g, '')             // remove HTML tags if present
+            .trim();
+
+        // Use a default title if empty
+        let title = data.judul || text;
+
+        // Wikipedia page URL (encode title for URL)
         let pageUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
 
-        let message = `*${title}*\n\n${snippet}\n\nRead more: ${pageUrl}`;
+        // Compose message with title, summary, and link
+        let message = `*${title}*\n\n${summary}\n\nRead more: ${pageUrl}`;
 
-        await m.reply(message);
+        // Send the thumbnail image with the summary as caption
+        await m.reply({
+            image: { url: data.thumb || 'https://pngimg.com/uploads/wikipedia/wikipedia_PNG35.png' },
+            caption: message
+        });
+
         setLimit(m, db);
     } catch (e) {
         console.error('Error in wiki command:', e);
@@ -2499,6 +2509,7 @@ break;
     }
 }
 break;
+				
 				
 				
 		case 'wattpad': {
