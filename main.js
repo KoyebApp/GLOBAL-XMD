@@ -99,6 +99,7 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 		const sewa = db.sewa
 		const premium = db.premium
 		const set = db.set[botNumber]
+		const apikey = 'APIKEY';
 		
 		// Database Game
 		let suit = db.game.suit
@@ -2436,7 +2437,6 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			case 'google': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
-	    const apikey = 'APIKEY'
         const url = `https://gtech-api-xtp1.onrender.com/api/google/search?query=${encodeURIComponent(text)}&apikey=${apikey}`;
 
         let response = await axios.get(url);
@@ -2468,6 +2468,35 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
     }
 }
 break;
+				case 'bing': {
+    if (!text) return m.reply(`Example: ${prefix + command} query`);
+    try {
+        // Replace with your API key
+        const url = `https://gtech-api-xtp1.onrender.com/api/bing/search?query=${encodeURIComponent(text)}&apikey=${apikey}`;
+
+        let response = await axios.get(url);
+        let data = response.data;
+
+        if (!data.status || !data.results || !data.results.results || data.results.results.length === 0) {
+            return m.reply('No search results found!');
+        }
+
+        // Format all results into a single message
+        let message = data.results.results.map((item, i) => {
+            let title = item.title || 'No title';
+            let url = item.url || 'No URL';
+            let desc = item.description || 'No description';
+            return `Result ${i + 1}:\nTitle: ${title}\nLink: ${url}\nDescription: ${desc}\n`;
+        }).join('\n');
+
+        await m.reply(message);
+    } catch (e) {
+        console.error('Bing search error:', e);
+        await m.reply('Search Not Found!');
+    }
+}
+break;
+				
 				
 			case 'gimage': case 'bingimg': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
