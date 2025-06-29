@@ -2469,6 +2469,37 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
     }
 }
 break;
+				case 'wiki': {
+    if (!text) return m.reply(`Example: ${prefix + command} Albert Einstein`);
+    try {
+        let response = await Qasim.wikisearch(text);
+	    console.log('API Response:', response);
+
+        // Assuming response is an array of search results with titles and snippets
+        if (!response || !Array.isArray(response) || response.length === 0) {
+            return m.reply('No Wikipedia results found!');
+        }
+
+        // Take the first search result
+        let first = response[0];
+
+        // Prepare message with title, snippet, and link to the Wikipedia page
+        // Usually, snippet may contain HTML tags, so strip them if needed
+        let snippet = first.snippet ? first.snippet.replace(/<\/?[^>]+(>|$)/g, "") : '';
+        let title = first.title || text;
+        let pageUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+
+        let message = `*${title}*\n\n${snippet}\n\nRead more: ${pageUrl}`;
+
+        await m.reply(message);
+        setLimit(m, db);
+    } catch (e) {
+        console.error('Error in wiki command:', e);
+        m.reply('Failed to fetch Wikipedia results!');
+    }
+}
+break;
+				
 				
 		case 'wattpad': {
     if (!text) return m.reply(`Example: ${prefix + command} story name`);
