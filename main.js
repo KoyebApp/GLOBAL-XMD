@@ -2894,7 +2894,7 @@ break;
 				}
 			}
 			break
-			case 'npmstalk': {
+				case 'npmstalk': {
   if (!text) return m.reply(`Example: ${prefix + command} express`);
   try {
     let response = await Qasim.npmStalk(text);
@@ -2913,7 +2913,13 @@ break;
     let homepage = pkg.homepage || `https://www.npmjs.com/package/${name}`;
     let repository = (pkg.repository && pkg.repository.url) || 'N/A';
 
-    let message = `*${name}*\n\n` +
+    // Use npm logo as fallback image
+    let imageUrl = 'https://static.npmjs.com/attachments/npm-logo-9d2b6b3d.png';
+
+    // Optionally, if the package has an icon or image URL in metadata, use it here
+    // But usually npm packages don't have images, so fallback is typical
+
+    let caption = `*${name}*\n\n` +
                   `Version: ${version}\n` +
                   `Author: ${author}\n` +
                   `License: ${license}\n` +
@@ -2921,7 +2927,11 @@ break;
                   `Homepage: ${homepage}\n` +
                   `Repository: ${repository}`;
 
-    await m.reply(message);
+    await m.reply({
+      image: { url: imageUrl },
+      caption: caption
+    });
+
     setLimit(m, db);
   } catch (e) {
     console.error('Error in npmstalk command:', e);
@@ -2929,6 +2939,8 @@ break;
   }
 }
 break;
+				
+			
 			// Downloader Menu
 			case 'ytmp3': case 'ytaudio': case 'ytplayaudio': {
 				if (!isLimit) return m.reply(mess.limit)
