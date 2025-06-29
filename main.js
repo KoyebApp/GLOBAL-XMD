@@ -2469,20 +2469,23 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
     }
 }
 break;
-				case 'wattpad': {
+				
+		case 'wattpad': {
     if (!text) return m.reply(`Example: ${prefix + command} story name`);
     try {
-        let response = await Qasim.wattpad(text);
-	    console.log('API Response:', response);
-        if (!response.status || !Array.isArray(response.result) || response.result.length === 0) {
+        // Call your Qasim.wattpad or fetch function to get the array response
+        let response = await Qasim.wattpad(text);  // or your fetch call returning the array
+
+        // Check if response is an array and has items
+        if (!Array.isArray(response) || response.length === 0) {
             return m.reply('No Wattpad stories found!');
         }
 
-        // Use the first story's thumbnail as the image
-        let firstThumb = response.result[0].thumb;
+        // Use the first story's thumbnail as image
+        let firstThumb = response[0].thumb;
 
-        // Build a caption with all stories info quoted
-        let caption = response.result.map(story => {
+        // Build caption with all stories info quoted
+        let caption = response.map(story => {
             return `Title: ${story.judul}\nReads: ${story.dibaca}\nVotes: ${story.divote}\nLink: ${story.link}`;
         }).join('\n\n');
 
