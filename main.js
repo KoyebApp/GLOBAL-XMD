@@ -2894,44 +2894,41 @@ break;
 				}
 			}
 			break
-				case 'npmstalk': {
-    if (!text) return m.reply(`Example: ${prefix + command} express`);
-    try {
-        let response = await Qasim.npmStalk(text);
-        console.log('NPM Stalk API response:', response);  // Log full response for debugging
+			case 'npmstalk': {
+  if (!text) return m.reply(`Example: ${prefix + command} express`);
+  try {
+    let response = await Qasim.npmStalk(text);
+    console.log('NPM Stalk API response:', response);
 
-        if (!response || !response.name) {
-            return m.reply('No npm package found!');
-        }
-
-        // Extract useful info (adjust keys based on actual response structure)
-        let name = response.name || text;
-        let version = response.version || 'N/A';
-        let description = response.description || 'No description available.';
-        let author = (response.author && response.author.name) || 'Unknown';
-        let license = response.license || 'Unknown';
-        let homepage = response.homepage || `https://www.npmjs.com/package/${name}`;
-        let repository = (response.repository && response.repository.url) || 'N/A';
-
-        // Compose reply message
-        let message = `*${name}*\n\n` +
-                      `Version: ${version}\n` +
-                      `Author: ${author}\n` +
-                      `License: ${license}\n` +
-                      `Description: ${description}\n\n` +
-                      `Homepage: ${homepage}\n` +
-                      `Repository: ${repository}`;
-
-        await m.reply(message);
-        setLimit(m, db);
-    } catch (e) {
-        console.error('Error in npmstalk command:', e);
-        m.reply('Failed to fetch npm package info!');
+    if (!response.status || !response.result || !response.result.name) {
+      return m.reply('No npm package found!');
     }
+
+    let pkg = response.result;
+    let name = pkg.name || text;
+    let version = (pkg['dist-tags'] && pkg['dist-tags'].latest) || 'N/A';
+    let description = pkg.description || 'No description available.';
+    let author = (pkg.author && pkg.author.name) || 'Unknown';
+    let license = pkg.license || 'Unknown';
+    let homepage = pkg.homepage || `https://www.npmjs.com/package/${name}`;
+    let repository = (pkg.repository && pkg.repository.url) || 'N/A';
+
+    let message = `*${name}*\n\n` +
+                  `Version: ${version}\n` +
+                  `Author: ${author}\n` +
+                  `License: ${license}\n` +
+                  `Description: ${description}\n\n` +
+                  `Homepage: ${homepage}\n` +
+                  `Repository: ${repository}`;
+
+    await m.reply(message);
+    setLimit(m, db);
+  } catch (e) {
+    console.error('Error in npmstalk command:', e);
+    m.reply('Failed to fetch npm package info!');
+  }
 }
 break;
-				
-			
 			// Downloader Menu
 			case 'ytmp3': case 'ytaudio': case 'ytplayaudio': {
 				if (!isLimit) return m.reply(mess.limit)
