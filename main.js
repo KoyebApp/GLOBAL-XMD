@@ -2434,20 +2434,42 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			
 			// Search Menu
 			case 'google': {
-				if (!text) return m.reply(`Example: ${prefix + command} query`)
-				try {
-					let anu = await youSearch(text);
-					m.reply(anu)
-				} catch (e) {
-					try {
-						let anu = await yanzGpt([{ role: 'system', content: 'carikan informasi tentang hal tersebut secara mendetail, dengan sumbernya juga!' }, { role: 'user', content: text }]);
-						m.reply(hasil.choices[0].message.content)
-					} catch (e) {
-						m.reply('Search Not Found!')
-					}
-				}
-			}
-			break
+    if (!text) return m.reply(`Example: ${prefix + command} query`);
+    try {
+        const apikey = 'APIKEY'; // replace with your API key
+        const url = `https://gtech-api-xtp1.onrender.com/api/google/search?query=${encodeURIComponent(text)}&apikey=${apikey}`;
+
+        let response = await axios.get(url);
+        let data = response.data;
+
+        if (!data.status || !data.results || data.results.length === 0) {
+            return m.reply('No search results found!');
+        }
+
+        // Format the results into a readable message
+        let message = data.results.map((item, i) => {
+            let title = item.title || 'No title';
+            return `Result ${i + 1}:\nTitle: ${title}\nLink: ${item.link}\nDescription: ${item.description}\n`;
+        }).join('\n');
+
+        await m.reply(message);
+    } catch (e) {
+        console.error('Google search error:', e);
+        try {
+            // fallback to your yanzGpt fallback method
+            let fallback = await yanzGpt([
+                { role: 'system', content: 'carikan informasi tentang hal tersebut secara mendetail, dengan sumbernya juga!' },
+                { role: 'user', content: text }
+            ]);
+            await m.reply(fallback.choices[0].message.content);
+        } catch (e2) {
+            console.error('Fallback error:', e2);
+            await m.reply('Search Not Found!');
+        }
+    }
+}
+break;
+				
 			case 'gimage': case 'bingimg': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
