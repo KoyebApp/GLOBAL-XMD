@@ -2469,6 +2469,35 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
     }
 }
 break;
+				case 'wattpad': {
+    if (!text) return m.reply(`Example: ${prefix + command} story name`);
+    try {
+        let response = await Qasim.wattpad(text);
+        if (!response.status || !Array.isArray(response.result) || response.result.length === 0) {
+            return m.reply('No Wattpad stories found!');
+        }
+
+        // Use the first story's thumbnail as the image
+        let firstThumb = response.result[0].thumb;
+
+        // Build a caption with all stories info quoted
+        let caption = response.result.map(story => {
+            return `Title: ${story.judul}\nReads: ${story.dibaca}\nVotes: ${story.divote}\nLink: ${story.link}`;
+        }).join('\n\n');
+
+        await m.reply({
+            image: { url: firstThumb },
+            caption: `"${caption}"`
+        });
+
+        setLimit(m, db);
+    } catch (e) {
+        console.error('Error in wattpad command:', e);
+        m.reply('Failed to fetch Wattpad stories!');
+    }
+}
+break;
+				
 				case 'bing': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
