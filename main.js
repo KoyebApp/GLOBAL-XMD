@@ -2451,21 +2451,31 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			case 'gimage': case 'bingimg': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
-        const url = `https://gtech-api-xtp1.onrender.com/api/download/gimage?query=${encodeURIComponent(text)}&apikey=APIKEY`;
+        // Call googleImage with the search text
+        let results = await Qasim.googleImage(text);
 
-        let response = await axios.get(url);
-        let images = response.data.result; 
-        if (!images || images.length === 0) return m.reply('No images found!');
+        // Debug what is returned by the API
+        console.log('Qasim.googleImage results:', results);
 
-        let imageUrl = images[0];  
+        // Check if results is an array and has items
+        if (!results || !Array.isArray(results) || results.length === 0) {
+            return m.reply('No images found!');
+        }
 
+        // Pick a random image URL from results (or use first)
+        let imageUrl = results[Math.floor(Math.random() * results.length)];
+
+        // Send image in reply with caption
         await m.reply({ image: { url: imageUrl }, caption: 'Search Results: ' + text });
+
         setLimit(m, db);
     } catch (e) {
+        console.error('Error in gimage command:', e);
         m.reply('Search Not Found!');
     }
 }
 break;
+				
 				
 				
 			case 'play': case 'ytplay': case 'yts': case 'ytsearch': case 'youtubesearch': {
