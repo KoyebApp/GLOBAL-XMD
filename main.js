@@ -26,6 +26,7 @@ const fetch = require('node-fetch');
 const FileType = require('file-type');
 const { Chess } = require('chess.js');
 const google = require('googlethis');
+const Qasim = require('api-qasim');
 const similarity = require('similarity');
 const PDFDocument = require('pdfkit');
 const webp = require('node-webpmux');
@@ -2448,17 +2449,21 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			}
 			break
 			case 'gimage': case 'bingimg': {
-				if (!text) return m.reply(`Example: ${prefix + command} query`)
-				try {
-					let anu = await fetchApi('/search/bing', { query: text });
-					let una = pickRandom(anu.result)
-					await m.reply({ image: { url: una }, caption: 'Search Results ' + text })
-					setLimit(m, db)
-				} catch (e) {
-					m.reply('Search Not Found!')
-				}
-			}
-			break
+    if (!text) return m.reply(`Example: ${prefix + command} query`);
+    try {
+        let images = await Qasim.googleImage(text);  // returns array of URLs
+        if (!images.length) return m.reply('No images found!');
+        let imageUrl = images[0];  // pick first image URL
+
+        // Send image in bot reply (example for WhatsApp or similar bot)
+        await m.reply({ image: { url: imageUrl }, caption: 'Search Results: ' + text });
+        setLimit(m, db);
+    } catch (e) {
+        m.reply('Search Not Found!');
+    }
+}
+break;
+				
 			case 'play': case 'ytplay': case 'yts': case 'ytsearch': case 'youtubesearch': {
 				if (!text) return m.reply(`Example: ${prefix + command} dj komang`)
 				m.reply(mess.wait)
