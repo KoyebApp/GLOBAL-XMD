@@ -3131,10 +3131,31 @@ break;
 			
 			// Quotes Menu
 			case 'motivasi': {
-				const hasil = await fetchJson('https://raw.githubusercontent.com/nazedev/database/refs/heads/master/kata-kata/motivasi.json');
-				m.reply(pickRandom(hasil))
-			}
-			break
+    try {
+        // URL to the raw text file on GitHub (use raw.githubusercontent.com)
+        const url = 'https://raw.githubusercontent.com/GlobalTechInfo/Islamic-Database/main/TXT-DATA/Motivational.txt';
+
+        // Fetch the raw text content
+        let res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch quotes');
+
+        let text = await res.text();
+
+        // Split text by newlines into an array of quotes
+        let quotes = text.split(/\r?\n/).filter(q => q.trim().length > 0);
+
+        // Pick a random quote
+        let randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
+        // Reply with the random motivational quote
+        m.reply(randomQuote);
+    } catch (e) {
+        console.error('Error fetching motivational quotes:', e);
+        m.reply('Sorry, failed to get a motivational quote.');
+    }
+}
+break;
+				
 			case 'bijak': {
 				const hasil = await fetchJson('https://raw.githubusercontent.com/nazedev/database/refs/heads/master/kata-kata/bijak.json');
 				m.reply(pickRandom(hasil))
