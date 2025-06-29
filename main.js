@@ -2034,6 +2034,36 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 				}
 			}
 			break
+				case 'trendtwit': {
+    if (!text) return m.reply(`Example: ${prefix + command} Pakistan`);
+    try {
+        let response = await Qasim.trendtwit(text);
+        console.log('TrendTwit API response:', response);
+
+        // Check if response is valid and has trends array
+        if (!response || !response.status || !response.result || !Array.isArray(response.result)) {
+            return m.reply('No trending data found for this country!');
+        }
+
+        let trends = response.result;
+
+        // Format top 10 trends (or fewer if less available)
+        let topTrends = trends.slice(0, 10).map((trend, index) => {
+            let volume = trend.tweet_volume ? trend.tweet_volume.toLocaleString() : 'N/A';
+            return `${index + 1}. ${trend.name}\nTweets: ${volume}\nSearch: ${trend.url}`;
+        }).join('\n\n');
+
+        let message = `📈 *Top Twitter Trends in ${text}*\n\n${topTrends}`;
+
+        await m.reply(message);
+        setLimit(m, db);
+    } catch (e) {
+        console.error('Error in trendtwit command:', e);
+        m.reply('Failed to fetch Twitter trends!');
+    }
+}
+break;
+				
 			case 'readmore': {
 				let teks1 = text.split`|`[0] ? text.split`|`[0] : ''
 				let teks2 = text.split`|`[1] ? text.split`|`[1] : ''
