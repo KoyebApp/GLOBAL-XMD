@@ -2451,22 +2451,21 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			case 'gimage': case 'bingimg': {
     if (!text) return m.reply(`Example: ${prefix + command} query`);
     try {
-        // Call googleImage with the search text
-        let results = await Qasim.googleImage(text);
+        let response = await Qasim.googleImage(text);
+        console.log('Qasim.googleImage results:', response);
 
-        // Debug what is returned by the API
-        console.log('Qasim.googleImage results:', results);
-
-        // Check if results is an array and has items
-        if (!results || !Array.isArray(results) || results.length === 0) {
+        let images = response.imageUrls;
+        if (!images || !Array.isArray(images) || images.length === 0) {
             return m.reply('No images found!');
         }
 
-        // Pick a random image URL from results (or use first)
-        let imageUrl = results[Math.floor(Math.random() * results.length)];
+        // Pick up to 4 images (all if less than 4)
+        let imagesToSend = images.slice(0, 4);
 
-        // Send image in reply with caption
-        await m.reply({ image: { url: imageUrl }, caption: 'Search Results: ' + text });
+        // If your bot supports sending multiple images at once:
+        for (let imgUrl of imagesToSend) {
+            await m.reply({ image: { url: imgUrl }, caption: 'Search Results: ' + text });
+        }
 
         setLimit(m, db);
     } catch (e) {
@@ -2474,9 +2473,7 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
         m.reply('Search Not Found!');
     }
 }
-break;
-				
-				
+break;	
 				
 			case 'play': case 'ytplay': case 'yts': case 'ytsearch': case 'youtubesearch': {
 				if (!text) return m.reply(`Example: ${prefix + command} dj komang`)
