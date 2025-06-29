@@ -3288,6 +3288,23 @@ case 'why': {
     }
 }
 break;
+				case 'islamic': {
+    try {
+        const url = 'https://raw.githubusercontent.com/GlobalTechInfo/Islamic-Database/main/IslamicQuotes.txt';
+        let res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch Islamic quotes');
+        let text = await res.text();
+        let quotes = text.split(/\r?\n/).filter(q => q.trim().length > 0);
+        let randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        let message = `*Islamic Quotes*\n\n${randomQuote}`;
+
+        m.reply(message);
+    } catch (e) {
+        console.error('Error fetching quotes:', e);
+        m.reply('Sorry, failed to get a quotes.');
+    }
+}
+break;
 			
 			// Random Menu
 			case 'coffe': case 'coffee': {
