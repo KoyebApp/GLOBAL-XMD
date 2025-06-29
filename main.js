@@ -2473,6 +2473,7 @@ break;
     if (!text) return m.reply(`Example: ${prefix + command} story name`);
     try {
         let response = await Qasim.wattpad(text);
+	    console.log('API Response:', response);
         if (!response.status || !Array.isArray(response.result) || response.result.length === 0) {
             return m.reply('No Wattpad stories found!');
         }
