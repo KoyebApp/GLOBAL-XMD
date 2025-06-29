@@ -3559,12 +3559,15 @@ case 'isuzu': {
 break;
 case 'itachi': {
     try {
+	await m.react('⏳')
         const response = await fetch('https://raw.githubusercontent.com/GlobalTechInfo/Anime-API/Guru/BOT-JSON/anime-itachi.json');
         if (!response.ok) throw new Error('Network response was not ok');
         const images = await response.json();
         const randomImage = images[Math.floor(Math.random() * images.length)];
         await qasim.sendFileUrl(m.chat, randomImage, 'Random Itachi Image', m);
+	    await m.react('✅')
     } catch (e) {
+	    await m.react('❌')
         m.reply('Server Offline or Data Unavailable!');
     }
 }
