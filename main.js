@@ -1662,14 +1662,16 @@ break
         m.reply('*Successfully Changed To Off*')
       } else m.reply(`${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
       break
-case 'set':
-case 'settings': {
+case 'set': case 'settings': {
   const langMap = {
     en: 'English',
     id: 'Indonesian',
     ur: 'Urdu',
     hi: 'Hindi'
   }
+
+  const langKey = set.lang && langMap[set.lang] ? set.lang : 'en' // fallback to 'en' if not valid
+  const langLabel = langMap[langKey]
 
   const statusTime =
     typeof set.status === 'number' || !isNaN(new Date(set.status))
@@ -1696,10 +1698,11 @@ case 'settings': {
     .map(key => {
       let val = set[key]
       let value
+
       if (key === 'status') {
         value = statusTime
       } else if (key === 'lang') {
-        value = langMap[val] || val
+        value = langLabel
       } else if (typeof val === 'boolean') {
         value = val ? 'ON' : 'OFF'
       } else {
@@ -1707,8 +1710,7 @@ case 'settings': {
       }
 
       const label = key.charAt(0).toUpperCase() + key.slice(1)
-      const padded = label.padEnd(maxLabelLen)
-      return `│> *${label}*${' '.repeat(maxLabelLen - label.length)} : ${value}`
+      return `│${setv} *${label}*${' '.repeat(maxLabelLen - label.length)} : ${value}`
     })
     .join('\n')
 
@@ -1722,7 +1724,7 @@ ${settingsList}
 
   await m.reply(menu)
 }
-break
+break	  
     default:
       if (args[0] || args[1]) {
         return m.reply(`*Please Select Settings:*
