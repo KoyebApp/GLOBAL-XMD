@@ -1658,41 +1658,43 @@ break
         m.reply('*Successfully Changed To Off*')
       } else m.reply(`${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
       break
+case 'set': case 'settings': {
+  const statusTime = set.status
+    ? new Date(set.status).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: global.timezone || 'Asia/Karachi'
+      })
+    : 'Unknown';
 
-    case 'set':
-    case 'settings': {
-      const statusTime = set.status
-        ? new Date(set.status).toLocaleString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          })
-        : 'Unknown';
+  const settingsList = Object.entries(set)
+    .filter(([key]) => key !== 'template')
+    .map(([key, val]) => {
+      let value
+      if (key === 'status') {
+        value = statusTime
+      } else if (typeof val === 'boolean') {
+        value = val ? '*ON*' : '*OFF*'
+      } else {
+        value = val
+      }
+      return `│${setv} *${key.charAt(0).toUpperCase() + key.slice(1)}* : ${value}`
+    })
+    .join('\n')
 
-      const formatSetting = (key, val) => {
-        const state = typeof val === 'boolean' ? (val ? 'ON' : 'OFF') : val;
-        const label = key.charAt(0).toUpperCase() + key.slice(1);
-        return `│ *${label.padEnd(13)}* : ${state}`;
-      };
-
-      const settingsList = Object.entries(set)
-        .filter(([k]) => k !== 'status')
-        .map(([k, v]) => formatSetting(k, v))
-        .join('\n');
-
-      const menu = `
+  const menu = `
 ╭─❍「 *BOT SETTINGS* 」❍
-│ *Status        * : ${statusTime}
 ${settingsList}
 ╰─────❍
 
-*Example:* ${prefix + command} mode self
-`.trim();
+*Example:* ${prefix + command} mode self`.trim()
 
-      await m.reply(menu);
-    }
-      break
-
+  await m.reply(menu)
+}
+break
+    
     default:
       if (args[0] || args[1]) {
         return m.reply(`*Please Select Settings:*
