@@ -1437,50 +1437,77 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 			}
 			break
 			case 'group': case 'grup': case 'gc': {
-				if (!m.isGroup) return m.reply(mess.group)
-				if (!m.isAdmin) return m.reply(mess.admin)
-				if (!m.isBotAdmin) return m.reply(mess.botAdmin)
-				let set = db.groups[m.chat]
-				switch (args[0]?.toLowerCase()) {
-					case 'close': case 'open':
-					await qasim.groupSettingUpdate(m.chat, args[0] == 'close' ? 'announcement' : 'not_announcement').then(a => m.reply(`*Done ${args[0] == 'open' ? 'Open' : 'Close'} Group*`))
-					break
-					case 'join':
-					const _list = await qasim.groupRequestParticipantsList(m.chat).then(a => a.map(b => b.jid))
-					if (/(a(p|pp|cc)|(ept|rove))|true|ok/i.test(args[1]) && _list.length > 0) {
-						await qasim.groupRequestParticipantsUpdate(m.chat, _list, 'approve').catch(e => m.react('❌'))
-					} else if (/reject|false|no/i.test(args[1]) && _list.length > 0) {
-						await qasim.groupRequestParticipantsUpdate(m.chat, _list, 'reject').catch(e => m.react('❌'))
-					} else m.reply(`List Request Join :\n${_list.length > 0 ? '- @' + _list.join('\n- @').split('@')[0] : '*Nothing*'}\nExample : ${prefix + command} join acc/reject`)
-					break
-					case 'pesansementara': case 'disappearing':
-					if (/90|7|1|24|on/i.test(args[1])) {
-						qasim.sendMessage(m.chat, { disappearingMessagesInChat: /90/i.test(args[1]) ? 7776000 : /7/i.test(args[1]) ? 604800 : 86400 })
-					} else if (/0|off|false/i.test(args[1])) {
-						qasim.sendMessage(m.chat, { disappearingMessagesInChat: 0 })
-					} else m.reply('Please select :\n90 hari, 7 hari, 1 hari, off')
-					break
-					case 'antilink': case 'antivirtex': case 'antidelete': case 'welcome': case 'antitoxic': case 'waktusholat': case 'nsfw': case 'antihidetag': case 'setinfo': case 'antitagsw': case 'leave': case 'promote': case 'demote':
-					if (/on|true/i.test(args[1])) {
-						if (set[args[0]]) return m.reply('*Already Active*')
-						set[args[0]] = true
-						m.reply('*Successfully Changed To On*')
-					} else if (/off|false/i.test(args[1])) {
-						set[args[0]] = false
-						m.reply('*Successfully Changed To Off*')
-					} else m.reply(`❗${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
-					break
-					case 'setwelcome': case 'setleave': case 'setpromote': case 'setdemote':
-					if (args[1]) {
-						set.text[args[0]] = args.slice(1).join(' ');
-						m.reply(`Successful Change ${args[0].split('set')[1]} Become:\n${set.text[args[0]]}`)
-					} else m.reply(`Example:\n${prefix + command} ${args[0]} Message Contents\n\nFor Example With tag:\n${prefix + command} ${args[0]} To @\nThen it will Become:\nTo @0\n\nFor example with the admin tag:\n${prefix + command} ${args[0]} From @admin for @\nThen it will Become:\nFrom @${m.sender.split('@')[0]} for @0\n\nFor example with Group Name:\n${prefix + command} ${args[0]} From @admin for @ of @subject\nThen it will Become:\nFrom @${m.sender.split('@')[0]} for @0 of ${m.metadata.subject}`)
-					break
-					default:
-					m.reply(`Settings Group ${m.metadata.subject}\n- open\n- close\n- join acc/reject\n- disappearing 90/7/1/off\n- antilink on/off ${set.antilink ? '🟢' : '🔴'}\n- antivirtex on/off ${set.antivirtex ? '🟢' : '🔴'}\n- antidelete on/off ${set.antidelete ? '🟢' : '🔴'}\n- welcome on/off ${set.welcome ? '🟢' : '🔴'}\n- leave on/off ${set.leave ? '🟢' : '🔴'}\n- promote on/off ${set.promote ? '🟢' : '🔴'}\n- demote on/off ${set.demote ? '🟢' : '🔴'}\n- setinfo on/off ${set.setinfo ? '🟢' : '🔴'}\n- nsfw on/off ${set.nsfw ? '🟢' : '🔴'}\n- waktusholat on/off ${set.waktusholat ? '🟢' : '🔴'}\n- antihidetag on/off ${set.antihidetag ? '🟢' : '🔴'}\n- antitagsw on/off ${set.antitagsw ? '🟢' : '🔴'}\n\n- setwelcome _textnya_\n- setleave _textnya_\n- setpromote _textnya_\n- setdemote _textnya_\n\nExample:\n${prefix + command} antilink off`)
-				}
-			}
-			break
+	if (!m.isGroup) return m.reply(mess.group)
+	if (!m.isAdmin) return m.reply(mess.admin)
+	if (!m.isBotAdmin) return m.reply(mess.botAdmin)
+	let set = db.groups[m.chat]
+	switch (args[0]?.toLowerCase()) {
+		case 'close': case 'open':
+			await qasim.groupSettingUpdate(m.chat, args[0] == 'close' ? 'announcement' : 'not_announcement').then(a => m.reply(`*Done ${args[0] == 'open' ? 'Open' : 'Close'} Group*`))
+		break
+
+		case 'join':
+			const _list = await qasim.groupRequestParticipantsList(m.chat).then(a => a.map(b => b.jid))
+			if (/(a(p|pp|cc)|(ept|rove))|true|ok/i.test(args[1]) && _list.length > 0) {
+				await qasim.groupRequestParticipantsUpdate(m.chat, _list, 'approve').catch(e => m.react('❌'))
+			} else if (/reject|false|no/i.test(args[1]) && _list.length > 0) {
+				await qasim.groupRequestParticipantsUpdate(m.chat, _list, 'reject').catch(e => m.react('❌'))
+			} else m.reply(`List Request Join :\n${_list.length > 0 ? '- @' + _list.join('\n- @').split('@')[0] : '*Nothing*'}\nExample : ${prefix + command} join acc/reject`)
+		break
+
+		case 'pesansementara': case 'disappearing':
+			if (/90|7|1|24|on/i.test(args[1])) {
+				qasim.sendMessage(m.chat, { disappearingMessagesInChat: /90/i.test(args[1]) ? 7776000 : /7/i.test(args[1]) ? 604800 : 86400 })
+			} else if (/0|off|false/i.test(args[1])) {
+				qasim.sendMessage(m.chat, { disappearingMessagesInChat: 0 })
+			} else m.reply('Please select :\n90 hari, 7 hari, 1 hari, off')
+		break
+
+		case 'antilink': case 'antivirtex': case 'antidelete': case 'welcome': case 'antitoxic': case 'waktusholat': case 'nsfw': case 'antihidetag': case 'setinfo': case 'antitagsw': case 'leave': case 'promote': case 'demote':
+			if (/on|true/i.test(args[1])) {
+				if (set[args[0]]) return m.reply('*Already Active*')
+				set[args[0]] = true
+				m.reply('*Successfully Changed To On*')
+			} else if (/off|false/i.test(args[1])) {
+				set[args[0]] = false
+				m.reply('*Successfully Changed To Off*')
+			} else m.reply(`❗${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
+		break
+
+		case 'setwelcome': case 'setleave': case 'setpromote': case 'setdemote':
+			if (args[1]) {
+				set.text[args[0]] = args.slice(1).join(' ');
+				m.reply(`Successful Change ${args[0].split('set')[1]} Become:\n${set.text[args[0]]}`)
+			} else m.reply(`Example:\n${prefix + command} ${args[0]} Message Contents\n\nFor Example With tag:\n${prefix + command} ${args[0]} To @\nThen it will Become:\nTo @0\n\nFor example with the admin tag:\n${prefix + command} ${args[0]} From @admin for @\nThen it will Become:\nFrom @${m.sender.split('@')[0]} for @0\n\nFor example with Group Name:\n${prefix + command} ${args[0]} From @admin for @ of @subject\nThen it will Become:\nFrom @${m.sender.split('@')[0]} for @0 of ${m.metadata.subject}`)
+		break
+
+		default:
+		m.reply(`╭─「 GROUP SETTINGS 」
+│ open / close
+│ join acc / reject
+│ disappearing 90 hari / 7 hari / 1 hari / off
+│ antilink : ${set.antilink ? '*ON*' : '*OFF*'}
+│ antivirtex : ${set.antivirtex ? '*ON*' : '*OFF*'}
+│ antidelete : ${set.antidelete ? '*ON*' : '*OFF*'}
+│ welcome : ${set.welcome ? '*ON*' : '*OFF*'}
+│ leave : ${set.leave ? '*ON*' : '*OFF*'}
+│ promote : ${set.promote ? '*ON*' : '*OFF*'}
+│ demote : ${set.demote ? '*ON*' : '*OFF*'}
+│ setinfo : ${set.setinfo ? '*ON*' : '*OFF*'}
+│ nsfw : ${set.nsfw ? '*ON*' : '*OFF*'}
+│ waktusholat : ${set.waktusholat ? '*ON*' : '*OFF*'}
+│ antihidetag : ${set.antihidetag ? '*ON*' : '*OFF*'}
+│ antitagsw : ${set.antitagsw ? '*ON*' : '*OFF*'}
+│
+│ setwelcome _Your Text_
+│ setleave _Your Text_
+│ setpromote _Your Text_
+│ setdemote _Your Text_
+╰────
+Example: ${prefix + command} antilink off`)
+	}
+}
+break
 			case 'tagall': {
 				if (!m.isGroup) return m.reply(mess.group)
 				if (!m.isAdmin) return m.reply(mess.admin)
