@@ -31,7 +31,7 @@ const similarity = require('similarity');
 const PDFDocument = require('pdfkit');
 const webp = require('node-webpmux');
 const ffmpeg = require('fluent-ffmpeg');
-const speed = require('performance-now');
+const now = require('performance-now');
 const didYouMean = require('didyoumean');
 const { performance } = require('perf_hooks');
 const moment = require('moment-timezone');
@@ -1209,29 +1209,54 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 				});
 			}
 			break
-			case 'sc': case 'repo': case 'script': {
-				await m.react('')
-				await m.reply(`https://github.com/GlobalTechInfo/GLOBAL-XMD\n⬆️ That's the SC, man`, {
-					contextInfo: {
-						forwardingScore: 10,
-						isForwarded: true,
-						forwardedNewsletterMessageInfo: {
-							newsletterJid: my.ch,
-							serverMessageId: null,
-							newsletterName: 'Join For More Info'
-						},
-						externalAdReply: {
-							title: author,
-							body: 'Subscribe My YouTube',
-							thumbnail: fake.thumbnail,
-							mediaType: 2,
-							mediaUrl: my.yt,
-							sourceUrl: my.yt,
-						}
-					}
-				})
-			}
-			break
+		case 'sc': case 'repo': case 'script': {
+  const githubRepoURL = 'https://github.com/GlobalTechInfo/GLOBAL-XMD';
+  const [, username, repoName] = githubRepoURL.match(/github\.com\/([^/]+)\/([^/]+)/) || [];
+
+  if (username && repoName) {
+    const response = await axios.get(`https://api.github.com/repos/${username}/${repoName}`);
+    if (response.status === 200) {
+      const repoData = response.data;
+
+      const formattedInfo = `
+📂 Repository Name: ${repoData.name}
+📝 Description: ${repoData.description || 'No description'}
+👤 Owner: ${repoData.owner.login}
+⭐ Stars: ${repoData.stargazers_count}
+🍴 Forks: ${repoData.forks_count}
+🌐 URL: ${repoData.html_url}
+`.trim();
+
+      const thumbnailBuffer = fs.readFileSync(path.join(__dirname, './src/media/global.png'));
+
+      await qasim.sendMessage(m.chat, {
+        image: thumbnailBuffer,
+        caption: formattedInfo,
+        contextInfo: {
+          forwardingScore: 10,
+          isForwarded: true,
+          forwardedNewsletterMessageInfo: {
+            newsletterJid: my.ch,
+            serverMessageId: null,
+            newsletterName: 'Join For More Info'
+          },
+          externalAdReply: {
+            title: author,
+            body: 'Subscribe My YouTube',
+            thumbnail: thumbnailBuffer,
+            mediaType: 2,
+            mediaUrl: my.yt,
+            sourceUrl: my.yt,
+          }
+        }
+      }, { quoted: m });
+    } else {
+      m.reply('❌ GitHub API returned a non-200 status.');
+    }
+  } else {
+    m.reply('❌ Invalid GitHub repository URL.');
+  }
+} break
 			case 'donasi': case 'donate': {
 				m.reply('Donasi Dapat Melalui Url Dibawah Ini :\nhttps://saweria.co/')
 			}
