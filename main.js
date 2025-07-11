@@ -1614,54 +1614,101 @@ break
 			}
 			break
 			case 'runtime': case 'tes': case 'bot': {
-				switch(args[0]) {
-					case 'mode': case 'public': case 'self':
-					if (!isCreator) return m.reply(mess.owner)
-					if (args[1] == 'public' || args[1] == 'all') {
-						if (qasim.public && set.grouponly && set.privateonly) return m.reply('*Already Active*')
-						qasim.public = set.public = true
-						set.grouponly = true
-						set.privateonly = true
-						m.reply('*Successfully Changed To Public Usage*')
-					} else if (args[1] == 'self') {
-						set.grouponly = false
-						set.privateonly = false
-						qasim.public = set.public = false
-						m.reply('*Successfully Changed To Self Usage*')
-					} else if (args[1] == 'group') {
-						set.grouponly = true
-						set.privateonly = false
-						m.reply('*Successfully Changed To Group Only*')
-					} else if (args[1] == 'private') {
-						set.grouponly = false
-						set.privateonly = true
-						m.reply('*Successfully Changed To Private Only*')
-					} else m.reply('Mode self/public/group/private/all')
-					break
-					case 'anticall': case 'autobio': case 'autoread': case 'autotyping': case 'readsw': case 'multiprefix': case 'antispam':
-					if (!isCreator) return m.reply(mess.owner)
-					if (args[1] == 'on') {
-						if (set[args[0]]) return m.reply('*Already Active*')
-						set[args[0]] = true
-						m.reply('*Successfully Changed To On*')
-					} else if (args[1] == 'off') {
-						set[args[0]] = false
-						m.reply('*Successfully Changed To Off*')
-					} else m.reply(`${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
-					break
-					case 'set': case 'settings':
-					let settingsBot = Object.entries(set).map(([key, value]) => {
-						let list = key == 'status' ? new Date(value).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : (typeof value === 'boolean') ? (value ? 'on🟢' : 'off🔴') : value;
-						return `- ${key.charAt(0).toUpperCase() + key.slice(1)} : ${list}`;
-					}).join('\n');
-					m.reply(`Settings Bot @${botNumber.split('@')[0]}\n${settingsBot}\n\nExample: ${prefix + command} mode`);
-					break
-					default:
-					if (args[0] || args[1]) m.reply(`*Please Sellect Settings :*\n- Mode : *${prefix + command} mode self/public*\n- Anti Call : *${prefix + command} anticall on/off*\n- Auto Bio : *${prefix + command} autobio on/off*\n- Auto Read : *${prefix + command} autoread on/off*\n- Auto Typing : *${prefix + command} autotyping on/off*\n- Read Sw : *${prefix + command} readsw on/off*\n- Multi Prefix : *${prefix + command} multiprefix on/off*`)
-				}
-				if (!args[0] && !args[1]) return m.reply(`*Bot Have Been Online For*\n*${runtime(process.uptime())}*`)
-			}
-			break
+  switch (args[0]) {
+    case 'mode':
+    case 'public':
+    case 'self':
+      if (!isCreator) return m.reply(mess.owner)
+      if (args[1] == 'public' || args[1] == 'all') {
+        if (qasim.public && set.grouponly && set.privateonly) return m.reply('*Already Active*')
+        qasim.public = set.public = true
+        set.grouponly = true
+        set.privateonly = true
+        m.reply('*Successfully Changed To Public Usage*')
+      } else if (args[1] == 'self') {
+        set.grouponly = false
+        set.privateonly = false
+        qasim.public = set.public = false
+        m.reply('*Successfully Changed To Self Usage*')
+      } else if (args[1] == 'group') {
+        set.grouponly = true
+        set.privateonly = false
+        m.reply('*Successfully Changed To Group Only*')
+      } else if (args[1] == 'private') {
+        set.grouponly = false
+        set.privateonly = true
+        m.reply('*Successfully Changed To Private Only*')
+      } else m.reply('Mode self/public/group/private/all')
+      break
+
+    case 'anticall':
+    case 'autobio':
+    case 'autoread':
+    case 'autotyping':
+    case 'readsw':
+    case 'multiprefix':
+    case 'antispam':
+      if (!isCreator) return m.reply(mess.owner)
+      if (args[1] == 'on') {
+        if (set[args[0]]) return m.reply('*Already Active*')
+        set[args[0]] = true
+        m.reply('*Successfully Changed To On*')
+      } else if (args[1] == 'off') {
+        set[args[0]] = false
+        m.reply('*Successfully Changed To Off*')
+      } else m.reply(`${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
+      break
+
+    case 'set':
+    case 'settings': {
+      const statusTime = set.status
+        ? new Date(set.status).toLocaleString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          })
+        : 'Unknown';
+
+      const formatSetting = (key, val) => {
+        const state = typeof val === 'boolean' ? (val ? 'ON' : 'OFF') : val;
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        return `│ *${label.padEnd(13)}* : ${state}`;
+      };
+
+      const settingsList = Object.entries(set)
+        .filter(([k]) => k !== 'status')
+        .map(([k, v]) => formatSetting(k, v))
+        .join('\n');
+
+      const menu = `
+╭─❍「 *BOT SETTINGS* 」❍
+│ *Status        * : ${statusTime}
+${settingsList}
+╰─────❍
+
+*Example:* ${prefix + command} mode self
+`.trim();
+
+      await m.reply(menu);
+    }
+      break
+
+    default:
+      if (args[0] || args[1]) {
+        return m.reply(`*Please Select Settings:*
+- Mode: *${prefix + command} mode self/public*
+- Anti Call: *${prefix + command} anticall on/off*
+- Auto Bio: *${prefix + command} autobio on/off*
+- Auto Read: *${prefix + command} autoread on/off*
+- Auto Typing: *${prefix + command} autotyping on/off*
+- Read Sw: *${prefix + command} readsw on/off*
+- Multi Prefix: *${prefix + command} multiprefix on/off*`)
+      }
+
+      return m.reply(`*Bot Has Been Online For*\n*${runtime(process.uptime())}*`)
+  }
+}
+break
 			case 'ping': case 'botstatus': case 'statusbot': {
 
   const start = now();
