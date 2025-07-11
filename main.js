@@ -1482,29 +1482,33 @@ module.exports = qasim = async (qasim, m, msg, store, groupCache) => {
 		break
 
 		default:
-		m.reply(`╭─「 GROUP SETTINGS 」
-│ open / close
-│ join acc / reject
-│ disappearing 90 hari / 7 hari / 1 hari / off
-│ antilink : ${set.antilink ? '*ON*' : '*OFF*'}
-│ antivirtex : ${set.antivirtex ? '*ON*' : '*OFF*'}
-│ antidelete : ${set.antidelete ? '*ON*' : '*OFF*'}
-│ welcome : ${set.welcome ? '*ON*' : '*OFF*'}
-│ leave : ${set.leave ? '*ON*' : '*OFF*'}
-│ promote : ${set.promote ? '*ON*' : '*OFF*'}
-│ demote : ${set.demote ? '*ON*' : '*OFF*'}
-│ setinfo : ${set.setinfo ? '*ON*' : '*OFF*'}
-│ nsfw : ${set.nsfw ? '*ON*' : '*OFF*'}
-│ waktusholat : ${set.waktusholat ? '*ON*' : '*OFF*'}
-│ antihidetag : ${set.antihidetag ? '*ON*' : '*OFF*'}
-│ antitagsw : ${set.antitagsw ? '*ON*' : '*OFF*'}
+		const groupSettingsMenu = `
+╭─「 *GROUP SETTINGS* 」
+│ ${setv} *Open*         / *Close*
+│ ${setv} *Join*         : acc / reject
+│ ${setv} *Disappearing* : 90 / 7 / 1 / off
+│ ${setv} *Antilink*     : ${set.antilink ? '*ON*' : '*OFF*'}
+│ ${setv} *Antivirtex*   : ${set.antivirtex ? '*ON*' : '*OFF*'}
+│ ${setv} *Antidelete*   : ${set.antidelete ? '*ON*' : '*OFF*'}
+│ ${setv} *Welcome*      : ${set.welcome ? '*ON*' : '*OFF*'}
+│ ${setv} *Promote*      : ${set.promote ? '*ON*' : '*OFF*'}
+│ ${setv} *Demote*       : ${set.demote ? '*ON*' : '*OFF*'}
+│ ${setv} *Waktusholat*  : ${set.waktusholat ? '*ON*' : '*OFF*'}
+│ ${setv} *Antihidetag*  : ${set.antihidetag ? '*ON*' : '*OFF*'}
+│ ${setv} *Antitagsw*    : ${set.antitagsw ? '*ON*' : '*OFF*'}
+│ ${setv} *Setinfo*      : ${set.setinfo ? '*ON*' : '*OFF*'}
+│ ${setv} *Leave*        : ${set.leave ? '*ON*' : '*OFF*'}
+│ ${setv} *Nsfw*         : ${set.nsfw ? '*ON*' : '*OFF*'}
 │
-│ setwelcome _Your Text_
-│ setleave _Your Text_
-│ setpromote _Your Text_
-│ setdemote _Your Text_
-╰────
-Example: ${prefix + command} antilink off`)
+│ ${setv} *Setwelcome* _text_
+│ ${setv} *Setleave*   _text_
+│ ${setv} *Setpromote* _text_
+│ ${setv} *Setdemote*  _text_
+╰────────❍
+*Example:* ${prefix + command} antilink off
+`.trim()
+
+m.reply(groupSettingsMenu)
 	}
 }
 break
@@ -1658,29 +1662,53 @@ break
         m.reply('*Successfully Changed To Off*')
       } else m.reply(`${args[0].charAt(0).toUpperCase() + args[0].slice(1)} on/off`)
       break
-case 'set': case 'settings': {
-  const statusTime = set.status
-    ? new Date(set.status).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-        timeZone: global.timezone || 'Asia/Karachi'
-      })
-    : 'Unknown';
+case 'set':
+case 'settings': {
+  const langMap = {
+    en: 'English',
+    id: 'Indonesian',
+    ur: 'Urdu',
+    hi: 'Hindi'
+  }
 
-  const settingsList = Object.entries(set)
-    .filter(([key]) => key !== 'template')
-    .map(([key, val]) => {
+  const statusTime =
+    typeof set.status === 'number' || !isNaN(new Date(set.status))
+      ? new Date(set.status).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+          timeZone: global.timezone || 'Asia/Karachi'
+        })
+      : 'Not Set'
+
+  const orderedKeys = [
+    'lang', 'status', 'public', 'grouponly', 'privateonly',
+    'anticall', 'autobio', 'autoread', 'autotyping',
+    'readsw', 'multiprefix', 'antispam', 'join',
+    'original', 'autobackup', 'limit', 'money'
+  ]
+
+  const maxLabelLen = Math.max(...orderedKeys.map(k => k.length))
+
+  const settingsList = orderedKeys
+    .filter(key => key in set)
+    .map(key => {
+      let val = set[key]
       let value
       if (key === 'status') {
         value = statusTime
+      } else if (key === 'lang') {
+        value = langMap[val] || val
       } else if (typeof val === 'boolean') {
-        value = val ? '*ON*' : '*OFF*'
+        value = val ? 'ON' : 'OFF'
       } else {
         value = val
       }
-      return `│${setv} *${key.charAt(0).toUpperCase() + key.slice(1)}* : ${value}`
+
+      const label = key.charAt(0).toUpperCase() + key.slice(1)
+      const padded = label.padEnd(maxLabelLen)
+      return `│> *${label}*${' '.repeat(maxLabelLen - label.length)} : ${value}`
     })
     .join('\n')
 
@@ -1689,12 +1717,12 @@ case 'set': case 'settings': {
 ${settingsList}
 ╰─────❍
 
-*Example:* ${prefix + command} mode self`.trim()
+*Example:* ${prefix + command} mode self
+`.trim()
 
   await m.reply(menu)
 }
 break
-    
     default:
       if (args[0] || args[1]) {
         return m.reply(`*Please Select Settings:*
