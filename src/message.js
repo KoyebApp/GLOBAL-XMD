@@ -21,7 +21,25 @@ const { jidNormalizedUser, proto, getBinaryNodeChildren, getBinaryNodeChild, gen
 
 async function GroupUpdate(qasim, m, store) {
 	if (!m.messageStubType || !m.isGroup) return
-	if (global.db?.groups?.[m.chat]?.setinfo && qasim.public) {
+
+	// Ensure database structure exists
+	if (!global.db) {
+		global.db = {
+			hit: {},
+			set: {},
+			list: {},
+			store: {},
+			users: {},
+			game: {},
+			groups: {},
+			database: {},
+			premium: [],
+			sewa: [],
+		}
+	}
+	if (!global.db.groups) global.db.groups = {};
+
+	if (global.db.groups[m.chat]?.setinfo && qasim.public) {
 		const admin = `@${m.sender.split`@`[0]}`
 const messages = {
     1: 'reset the group link!',
@@ -109,11 +127,35 @@ async function GroupParticipantsUpdate(qasim, { id, participants, author, action
 async function LoadDataBase(qasim, m) {
 	try {
 		const botNumber = await qasim.decodeJid(qasim.user.id);
-		let game = global.db.game || {};
-		let premium = global.db.premium || [];
+
+		// Ensure database structure exists
+		if (!global.db) {
+			global.db = {
+				hit: {},
+				set: {},
+				list: {},
+				store: {},
+				users: {},
+				game: {},
+				groups: {},
+				database: {},
+				premium: [],
+				sewa: [],
+			}
+		}
+
+		// Initialize sub-objects if they don't exist
+		if (!global.db.game) global.db.game = {};
+		if (!global.db.premium) global.db.premium = [];
+		if (!global.db.users) global.db.users = {};
+		if (!global.db.set) global.db.set = {};
+		if (!global.db.groups) global.db.groups = {};
+
+		let game = global.db.game;
+		let premium = global.db.premium;
 		let user = global.db.users[m.sender] || {};
 		let setBot = global.db.set[botNumber] || {};
-		
+
 		global.db.game = game;
 		global.db.users[m.sender] = user;
 		global.db.set[botNumber] = setBot;
@@ -707,7 +749,26 @@ async function Solving(qasim, store) {
 	
 	if (qasim.user && qasim.user.id) {
 		const botNumber = qasim.decodeJid(qasim.user.id);
-		if (global.db?.set[botNumber]) {
+		// Ensure database structure exists
+		if (!global.db) {
+			global.db = {
+				hit: {},
+				set: {},
+				list: {},
+				store: {},
+				users: {},
+				game: {},
+				groups: {},
+				database: {},
+				premium: [],
+				sewa: [],
+			}
+		}
+		if (!global.db.set) {
+			global.db.set = {}
+		}
+
+		if (global.db.set[botNumber]) {
 			qasim.public = global.db.set[botNumber].public
 		} else qasim.public = true
 	} else qasim.public = true
@@ -783,20 +844,6 @@ async function Serialize(qasim, msg, store, groupCache) {
 			m.quoted.text = m.quoted.caption || m.quoted.conversation || m.quoted.contentText || m.quoted.selectedDisplayText || m.quoted.title || ''
 			m.quoted.msg = extractMessageContent(m.quoted.message[m.quoted.type]) || m.quoted.message[m.quoted.type]
 			m.quoted.mentionedJid = m.quoted?.msg?.contextInfo?.mentionedJid || []
-			m.quoted.body = m.quoted.msg?.text || m.quoted.msg?.caption || m.quoted?.message?.conversation || m.quoted.msg?.selectedButtonId || m.quoted.msg?.singleSelectReply?.selectedRowId || m.quoted.msg?.selectedId || m.quoted.msg?.contentText || m.quoted.msg?.selectedDisplayText || m.quoted.msg?.title || m.quoted?.msg?.name || ''
-			m.getQuotedObj = async () => {
-				if (!m.quoted.id) return false
-				let q = await store.loadMessage(m.chat, m.quoted.id, qasim)
-				return await Serialize(qasim, q, store, groupCache)
-			}
-			m.quoted.key = {
-				remoteJid: m.msg?.contextInfo?.remoteJid || m.chat,
-				participant: m.quoted.sender,
-				fromMe: areJidsSameUser(qasim.decodeJid(m.msg?.contextInfo?.participant), qasim.decodeJid(qasim?.user?.id)),
-				id: m.msg?.contextInfo?.stanzaId
-			}
-			m.quoted.isGroup = m.quoted.chat.endsWith('@g.us')
-			m.quoted.mentions = m.quoted.msg?.contextInfo?.mentionedJid || []
 			m.quoted.body = m.quoted.msg?.text || m.quoted.msg?.caption || m.quoted?.message?.conversation || m.quoted.msg?.selectedButtonId || m.quoted.msg?.singleSelectReply?.selectedRowId || m.quoted.msg?.selectedId || m.quoted.msg?.contentText || m.quoted.msg?.selectedDisplayText || m.quoted.msg?.title || m.quoted?.msg?.name || ''
 			m.quoted.prefix = /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(m.quoted.body) ? m.quoted.body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(m.quoted.body) ? m.quoted.body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : ''
 			m.quoted.command = m.quoted.body && m.quoted.body.replace(m.quoted.prefix, '').trim().split(/ +/).shift()
