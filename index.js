@@ -115,93 +115,70 @@ async function startQasimBot() {
 
 	const level = pino({ level: 'silent' });
 
-	
+
 
 	try {
-
 		const loadData = await database.read()
-
 		const storeLoadData = await storeDB.read()
 
+		// Initialize database structure properly
+		const defaultDB = {
+			hit: {},
+			set: {},
+			list: {},
+			store: {},
+			users: {},
+			game: {},
+			groups: {},
+			database: {},
+			premium: [],
+			sewa: [],
+		}
+
 		if (!loadData || Object.keys(loadData).length === 0) {
-
-			global.db = {
-
-				hit: {},
-
-				set: {},
-
-				list: {},
-
-				store: {},
-
-				users: {},
-
-				game: {},
-
-				groups: {},
-
-				database: {},
-
-				premium: [],
-
-				sewa: [],
-
-				...(loadData || {}),
-
-			}
-
+			global.db = { ...defaultDB }
 			await database.write(global.db)
-
 		} else {
+			global.db = { ...defaultDB, ...loadData }
+			// Ensure all required properties exist
+			for (const key in defaultDB) {
+				if (!(key in global.db)) {
+					global.db[key] = defaultDB[key]
+				}
+			}
+		}
 
-			global.db = loadData
-
+		// Initialize store structure properly
+		const defaultStore = {
+			contacts: {},
+			presences: {},
+			messages: {},
+			groupMetadata: {},
 		}
 
 		if (!storeLoadData || Object.keys(storeLoadData).length === 0) {
-
-			global.store = {
-
-				contacts: {},
-
-				presences: {},
-
-				messages: {},
-
-				groupMetadata: {},
-
-				...(storeLoadData || {}),
-
-			}
-
+			global.store = { ...defaultStore }
 			await storeDB.write(global.store)
-
 		} else {
-
-			global.store = storeLoadData
-
+			global.store = { ...defaultStore, ...storeLoadData }
+			// Ensure all required properties exist
+			for (const key in defaultStore) {
+				if (!(key in global.store)) {
+					global.store[key] = defaultStore[key]
+				}
+			}
 		}
 
-		
-
 		setInterval(async () => {
-
 			if (global.db) await database.write(global.db)
-
 			if (global.store) await storeDB.write(global.store)
-
 		}, 30 * 1000)
-
 	} catch (e) {
-
 		console.log(e)
-
 		process.exit(1)
-
 	}
 
-	
+
 
 	store.loadMessage = function (remoteJid, id) {
 
@@ -213,7 +190,7 @@ async function startQasimBot() {
 
 	}
 
-	
+
 
 	const getMessage = async (key) => {
 
@@ -233,7 +210,7 @@ async function startQasimBot() {
 
 	}
 
-	
+
 
 	const qasim = WAConnection({
 
@@ -295,70 +272,51 @@ async function startQasimBot() {
 
 	})
 
-	
 
-	if (pairingCode && !phoneNumber && !qasim.authState.creds.registered) {
 
-		async function getPhoneNumber() {
+	if (pairingCode && !qasim.authState.creds.registered) {
+		if (!phoneNumber) {
+			async function getPhoneNumber() {
+				phoneNumber = global.number_bot ? global.number_bot : process.env.BOT_NUMBER || await question('Please type your WhatsApp number : ');
+				phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
 
-			phoneNumber = global.number_bot ? global.number_bot : process.env.BOT_NUMBER || await question('Please type your WhatsApp number : ');
-
-			phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
-
-			
-
-			if (!parsePhoneNumber('+' + phoneNumber).valid && phoneNumber.length < 6) {
-
-				console.log(chalk.bgBlack(chalk.redBright('Start with your Country WhatsApp code') + chalk.whiteBright(',') + chalk.greenBright(' Example : 92xxx')));
-
-				await getPhoneNumber()
-
+				if (!parsePhoneNumber('+' + phoneNumber).valid && phoneNumber.length < 6) {
+					console.log(chalk.bgBlack(chalk.redBright('Start with your Country WhatsApp code') + chalk.whiteBright(',') + chalk.greenBright(' Example : 92xxx')));
+					await getPhoneNumber()
+				}
 			}
-
-		}
-
-		(async () => {
-
 			await getPhoneNumber();
-
-			await exec('rm -rf ./qasimdev/*');
-
 			console.log('Phone number captured. Waiting for Connection...\n' + chalk.yellowBright('Estimated time: around 2 ~ 5 minutes'))
-
-		})()
-
+		}
 	}
 
-	
 
 	await Solving(qasim, store)
 
-	
 
 	qasim.ev.on('creds.update', saveCreds)
 
-	
 
 	qasim.ev.on('connection.update', async (update) => {
-
 		const { qr, connection, lastDisconnect, isNewLogin, receivedPendingNotifications } = update
 
-		if (!qasim.authState.creds.registered) console.log('Connection: ', connection || false);
+		if (!qasim.authState.creds.registered) {
+			console.log('Connection: ', connection || false);
+		}
 
-		if ((connection === 'connecting' || !!qr) && pairingCode && phoneNumber && !qasim.authState.creds.registered && !pairingStarted) {
-
+		if (connection === 'connecting' && pairingCode && phoneNumber && !qasim.authState.creds.registered && !pairingStarted) {
+			pairingStarted = true;
 			setTimeout(async () => {
-
-				pairingStarted = true;
-
-				console.log('Requesting Pairing Code...')
-
-				let code = await qasim.requestPairingCode(phoneNumber);
-
-				console.log(chalk.greenBright(`Your Pairing Code : ${code}`));
-
+				try {
+					console.log('Requesting Pairing Code...')
+					let code = await qasim.requestPairingCode(phoneNumber);
+					console.log(chalk.greenBright(`Your Pairing Code : ${code}`));
+					console.log(chalk.yellowBright('Enter this code in your WhatsApp: Settings > Linked Devices > Link a Device > Link with Phone Number'));
+				} catch (error) {
+					console.error('Error requesting pairing code:', error);
+					pairingStarted = false;
+				}
 			}, 3000)
-
 		}
 
 		if (connection === 'close') {
@@ -431,24 +389,20 @@ async function startQasimBot() {
 
 		}
 
-		if (connection == 'open') {
-
+		if (connection === 'open') {
+			console.log(chalk.green('✅ Successfully connected to WhatsApp!'));
 			console.log('Connected to : ' + JSON.stringify(qasim.user, null, 2));
-
 			let botNumber = await qasim.decodeJid(qasim.user.id);
 
+			// Reset pairing state on successful connection
+			pairingStarted = false;
+
 			if (global.db?.set[botNumber] && !global.db?.set[botNumber]?.join) {
-
 				if (my.ch.length > 0 && my.ch.includes('@newsletter')) {
-
 					if (my.ch) await qasim.newsletterMsg(my.ch, { type: 'follow' }).catch(e => {})
-
 					db.set[botNumber].join = true
-
 				}
-
 			}
-
 		}
 
 		if (qr) {
@@ -477,7 +431,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('contacts.update', (update) => {
 
@@ -491,7 +445,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('call', async (call) => {
 
@@ -523,7 +477,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('messages.upsert', async (message) => {
 
@@ -531,7 +485,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('group-participants.update', async (update) => {
 
@@ -539,7 +493,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('groups.update', (update) => {
 
@@ -557,7 +511,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	qasim.ev.on('presence.update', ({ id, presences: update }) => {
 
@@ -567,7 +521,7 @@ async function startQasimBot() {
 
 	});
 
-	
+
 
 	setInterval(async () => {
 
