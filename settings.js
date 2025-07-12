@@ -22,7 +22,7 @@ global.tempatDB = process.env.MONGODB_URI || 'database.json';
 global.tempatStore = process.env.MONGODB_URI || 'baileys_store.json';
 global.timezone = process.env.TIME_ZONE || 'UTC'
 global.pairing_code = process.env.PAIRING_CODE !== 'false';
-global.number_bot = process.env.BOT_NUMBER || '';
+global.number_bot = process.env.BOT_NUMBER || process.env.PHONE_NUMBER || '';
 
 global.my = {
 	yt: process.env.MY_YOUTUBE || 'https://youtube.com/@GlobalTechInfo',
