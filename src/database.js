@@ -1,3 +1,4 @@
+
 require('../settings');
 const fs = require('fs');
 const toMs = require('ms');
@@ -12,7 +13,8 @@ class MongoDB {
 		this.options = options
 		this.isConnecting = false
 		this.isReconnecting = false
-		
+		this.modelName = 'data'
+
 		mongoose.connection.on('disconnected', async () => {
 			if (this.isReconnecting) return
 			this.isReconnecting = true
@@ -21,25 +23,46 @@ class MongoDB {
 			await this.connect();
 		});
 	}
-	
+
 	connect = async (retries = 5, delay = 2000) => {
-		if (mongoose.connection.readyState === 1 || this.isConnecting) {
-			console.log('✅ MongoDB is already connected.');
+		// If already connected and model exists, return
+		if (mongoose.connection.readyState === 1 && this._model) {
 			return;
 		}
+
+		// If already connecting, wait
+		if (this.isConnecting) {
+			while (this.isConnecting) {
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+			return;
+		}
+
 		this.isConnecting = true;
+
 		while (retries > 0) {
 			try {
 				console.log(`🔄 Attempting to connect to MongoDB... (Attempt ${6 - retries}/5)`);
-				if (mongoose.connection.readyState === 0) {
+				
+				// Connect to MongoDB if not connected
+				if (mongoose.connection.readyState !== 1) {
 					await mongoose.connect(this.url, { ...this.options });
 				}
+
+				// Initialize model if not exists
 				if (!this._model) {
 					const schema = new mongoose.Schema({
 						data: { type: Object, required: true, default: {} }
-					})
-					this._model = mongoose.models.data || mongoose.model('data', schema);
+					});
+
+					// Check if model already exists in mongoose models
+					if (mongoose.models[this.modelName]) {
+						this._model = mongoose.models[this.modelName];
+					} else {
+						this._model = mongoose.model(this.modelName, schema);
+					}
 				}
+
 				console.log('✅ Successfully connected to MongoDB.');
 				this.isConnecting = false;
 				this.isReconnecting = false;
@@ -50,38 +73,72 @@ class MongoDB {
 				retries--;
 			}
 		}
+		
 		this.isConnecting = false;
 		throw new Error('❌ MongoDB connection failed after multiple attempts.');
 	}
-	
+
 	read = async () => {
-		if (mongoose.connection.readyState !== 1 && !this.isConnecting) {
-			await this.connect();
+		// Ensure connection and model are ready
+		await this.connect();
+		
+		if (!this._model) {
+			throw new Error('Model initialization failed - model is null after connection');
 		}
-		let doc = await this._model.findOne({});
-		if (!doc) {
-			doc = new this._model({ data: {} });
-			await doc.save();
-		}
+
 		try {
-			return JSON.parse(doc.data);
-		} catch {
-			return doc.data || {};
+			let doc = await this._model.findOne({});
+			if (!doc) {
+				doc = new this._model({ data: {} });
+				await doc.save();
+			}
+			
+			// Handle different data formats
+			if (typeof doc.data === 'string') {
+				try {
+					return JSON.parse(doc.data);
+				} catch {
+					return {};
+				}
+			} else if (typeof doc.data === 'object' && doc.data !== null) {
+				return doc.data;
+			} else {
+				return {};
+			}
+		} catch (error) {
+			console.error('Error reading from MongoDB:', error);
+			return {};
 		}
 	}
-	
+
 	write = async (data) => {
 		if (!data) return;
-		if (mongoose.connection.readyState !== 1 && !this.isConnecting) {
-			await this.connect();
+		
+		// Ensure connection and model are ready
+		await this.connect();
+		
+		if (!this._model) {
+			throw new Error('Model initialization failed - model is null after connection');
 		}
-		const safeData = JSON.stringify(data, (key, value) => {
-			if (typeof value === 'object' && value !== null && value._id) {
-				return undefined;
-			}
-			return value;
-		});
-		await this._model.findOneAndUpdate({}, { data: safeData }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+		try {
+			// Sanitize data to remove MongoDB-specific fields
+			const safeData = JSON.stringify(data, (key, value) => {
+				if (typeof value === 'object' && value !== null && value._id) {
+					return undefined;
+				}
+				return value;
+			});
+
+			await this._model.findOneAndUpdate(
+				{}, 
+				{ data: safeData }, 
+				{ upsert: true, new: true, setDefaultsOnInsert: true }
+			);
+		} catch (error) {
+			console.error('Error writing to MongoDB:', error);
+			throw error;
+		}
 	}
 }
 
@@ -92,7 +149,7 @@ class JsonDB {
 		this.isWriting = false;
 		this.writePending = false;
 	}
-	
+
 	read = async () => {
 		let data;
 		if (fs.existsSync(this.file)) {
@@ -114,7 +171,7 @@ class JsonDB {
 		}
 		return data
 	}
-	
+
 	write = async (data) => {
 		this.data = data || global.db || {}
 		if (this.isWriting) {
@@ -213,7 +270,6 @@ module.exports = {
 	getAllExpired,
 	checkExpired
 }
-
 
 let file = require.resolve(__filename)
 fs.watchFile(file, () => {
