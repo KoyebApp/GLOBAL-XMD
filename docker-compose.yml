@@ -1,3 +1,32 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃         📦 Docker Compose Configuration       ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+#
+# ➤ Purpose:
+#   - Defines the services and runtime setup for the WhatsApp bot GLOBAL-XMD
+#   - Automatically pulls and runs the bot image from quay.io
+#   - Clones the latest bot code from GitHub at runtime
+#   - Sets up persistent volumes and mounts the watchdog script
+#
+# ➤ Usage:
+#   1. Create a `.env` file in the same directory to define runtime variables:
+#
+#   2. Start the bot service:
+#        docker compose up -d
+#
+#   3. Logs:
+#        docker compose logs -f
+#
+# ➤ Environment Support:
+#   - Works on local Docker setup and most cloud platforms like Render, Railway, Heroku, Koyeb
+#
+# ➤ Watchdog Integration:
+#   - Uses `watch.sh` to monitor GitHub repo for changes and auto-update the bot on new commits
+#
+# ➤ Port Exposure:
+#   - By default, exposes port 5000 (you can change if needed)
+
+
 version: '3.8'
 
 services:
