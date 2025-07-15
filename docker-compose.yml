@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  global-xmd:
+    image: quay.io/qasimtech/mega-ai:latest
+    container_name: global-xmd
+    restart: unless-stopped
+    working_dir: /root/global-xmd
+    volumes:
+      - global_xmd_data:/root/global-xmd
+      - ./watch.xmd.sh:/root/global-xmd/watch.sh
+    ports:
+      - "5001:5000"
+    command: sh -c "
+      git clone https://github.com/GlobalTechInfo/GLOBAL-XMD /root/global-xmd || true &&
+      rm -rf /root/global-xmd/.git &&
+      chmod +x /root/global-xmd/watch.sh &&
+      cd /root/global-xmd &&
+      npm install || yarn install &&
+      ./watch.sh"
+
+volumes:
+  global_xmd_data:
