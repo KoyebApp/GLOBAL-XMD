@@ -8,9 +8,9 @@ services:
     working_dir: /root/global-xmd
     volumes:
       - global_xmd_data:/root/global-xmd
-      - ./watch.xmd.sh:/root/global-xmd/watch.sh
+      - ./watch.sh:/root/global-xmd/watch.sh
     ports:
-      - "5001:5000"
+      - "3000:5000"
     command: sh -c "
       git clone https://github.com/GlobalTechInfo/GLOBAL-XMD /root/global-xmd || true &&
       rm -rf /root/global-xmd/.git &&
