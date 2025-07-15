@@ -31,7 +31,7 @@ version: '3.8'
 
 services:
   global-xmd:
-    image: quay.io/qasimtech/mega-ai:latest
+    image: quay.io/qasimtech/mega-ai:v3.0.1
     container_name: global-xmd
     restart: unless-stopped
     working_dir: /root/global-xmd
@@ -40,6 +40,12 @@ services:
       - ./watch.sh:/root/global-xmd/watch.sh
     ports:
       - "3000:5000"
+    environment:
+      BOT_NUMBER: ${BOT_NUMBER}
+      TIME_ZONE: ${TIME_ZONE}
+      OWNER_NUMBER: ${OWNER_NUMBER}
+      BOT_NAME: ${BOT_NAME}
+      PREFIX: ${PREFIX}
     command: sh -c "
       git clone https://github.com/GlobalTechInfo/GLOBAL-XMD /root/global-xmd || true &&
       rm -rf /root/global-xmd/.git &&
